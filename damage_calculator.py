@@ -10,6 +10,7 @@ class Ability:
     piercing: bool
     rank: int
 
+
 class Partner:
     def __init__(self, name: str, base_dmg_list: list[int], ability_list: list[Ability]) -> None:
         self.name = name
@@ -20,15 +21,14 @@ class Partner:
         results = []
 
         for ability in self.ability_list:
-            damage = -1
-
-            if rank < ability.rank:
+            if rank < ability.rank: # if ability isn't unlocked at this rank...
                 continue
             
-            base_attack = self.base_dmg_list[rank-1]+ability.base_dmg
+            # Copy parameters into local variables for ease of editing
+            base_attack = self.base_dmg_list[rank-1] + ability.base_dmg
             modifier = atk_modifier
             num_hits = ability.num_hits
-            falloff = True # does damage decrease with each attack?
+            falloff = True # does damage decrease with each attack? Only relevant for Mini-Egg...
 
             if ability.piercing and atk_modifier < 0:
                 modifier = 0
@@ -52,6 +52,7 @@ class Partner:
 
 
 def calculate_damage(base_attack: int, atk_modifier: int, num_hits: int, falloff: bool=True) -> int:
+
     if (num_hits < 3 or not falloff):
         total_damage = (base_attack + atk_modifier) * num_hits
         total_damage = 0 if (total_damage < 0) else total_damage
@@ -64,15 +65,22 @@ def calculate_damage(base_attack: int, atk_modifier: int, num_hits: int, falloff
         for i in range(num_hits):
             initial_hit = base_attack + atk_modifier
 
+            # If the initial hit does at least 1 damage, then every
+            # subsequent hit will also deal at least 1 damage.
+            # Otherwise, no damage is dealt at all.
             if (initial_hit <= 0):
                 break
             else:
                 damage_dealt = initial_hit - i
 
-                total_damage += damage_dealt if damage_dealt > 0 else 1
+                if damage_dealt <= 0:
+                    damage_dealt = 1
+
+                total_damage += damage_dealt
         
         return total_damage
 
+# Unit tests for debugging... this can be ignored
 if __name__ == "__main__":
     for r in [1,2,3]:
         for m in range(-3, 5+1):

@@ -3,9 +3,11 @@ from discrete_plotter import *
 
 from matplotlib import interactive
 
-common_only = True
+common_only = True # Restricts data to just moves that would be sensibly used for single-target
 common_moves = ["Headbonk", "Multibonk (3 hits)", "Multibonk (4 hits)", "Multibonk (5 hits)",
                 "Shell Toss", "Body Slam", "Ground Pound", "Mini-Egg", "Shade Fist", "Bomb", "Love Slap"]
+
+
 
 def initialize_data() -> list[Partner]:
     partner_list = []
@@ -49,51 +51,63 @@ def initialize_data() -> list[Partner]:
 
     return partner_list
 
+
+
+
 def main():
     partner_list = initialize_data()
 
-    data = [[],[],[]] # [rank][move][modifier]
+    all_data = [[],[],[]] # [rank][move][modifier]
 
+    # For the sake of conciseness, each rank has their own range of attack modifiers
+    # ... since you're not likely to see huge modifiers at lower ranks
     modifier_range_list = [
         range(-3,5+1),
         range(-4,6+1),
         range(-6,8+1)
     ]
 
-    interactive(True)
-    for r in [1,2,3]:
+    for r in [1,2,3]: # for each rank...
         modifier_range = modifier_range_list[r-1]
 
         for partner in partner_list:
             move_data = []
+            move_data_is_empty = True
 
-            for m in modifier_range:
-                sub_move_index = 0
+            for m in modifier_range: # for each attack modifier...
+
+                # Calculate total damage for all of a partner's abilities
                 results = partner.calculate_all_ability_damage(rank=r,atk_modifier=m)
 
+                move_index = 0
+
                 # Rearrange results from [modifier][move] format to [move][modifier]
-                if len(move_data) == 0:
-                    for i in range(len(results)):
-                        if ((common_only and (results[i].ability in common_moves)) or not common_only):
+                for i in range(len(results)):
+
+                    if (not common_only or (common_only and (results[i].ability in common_moves))):
+                        if move_data_is_empty:
                             move_data.append([results[i]])
-                else:
-                    for i in range(len(results)):
-                        if ((common_only and (results[i].ability in common_moves)) or not common_only):
-                            move_data[sub_move_index].append(results[i])
-                            sub_move_index += 1
+                        else:
+                            move_data[move_index].append(results[i])
+                            move_index += 1
+
+                move_data_is_empty = False
             
-            data[r-1].extend(move_data)
+            all_data[r-1].extend(move_data)
 
-        generate_rank_plot(r, data[r-1], modifier_range)
+        generate_rank_plot(r, all_data[r-1], modifier_range)
     
-    # for partner in partner_list:
-    #     generate_partner_plot(partner.name, data, modifier_range_list)
+    
+    ### Uncomment this if you want to see graphs for ALL partners
+    ### Realistically, only Goombella and Yoshi's graphs are interesting
+    for partner in partner_list:
+        generate_partner_plot(partner.name, all_data, modifier_range_list)
 
-    for partner in ["Goombella", "Yoshi"]:
-        generate_partner_plot(partner, data, modifier_range_list)
+    ### Comment out this loop if you want to see graphs for ALL partners
+    # for partner in ["Goombella", "Yoshi"]:
+    #     generate_partner_plot(partner, all_data, modifier_range_list)
     
-    input()
-    interactive(False)
+    input() # prevents graphs from instantly disappearing
 
 if __name__ == "__main__":
     main()
