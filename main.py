@@ -1,4 +1,11 @@
 from damage_calculator import *
+from discrete_plotter import *
+
+from matplotlib import interactive
+
+common_only = True
+common_moves = ["Headbonk", "Multibonk (3 hits)", "Multibonk (4 hits)", "Multibonk (5 hits)",
+                "Shell Toss", "Body Slam", "Ground Pound", "Mini-Egg", "Shade Fist", "Bomb", "Love Slap"]
 
 def initialize_data() -> list[Partner]:
     partner_list = []
@@ -11,7 +18,7 @@ def initialize_data() -> list[Partner]:
         ]))
 
     partner_list.append(Partner(name="Koops", base_dmg_list=[2,3,5], ability_list=[
-        Ability("Shell Toss/Power Shell", base_dmg=0, num_hits=1, piercing=False, rank=1),
+        Ability("Shell Toss", base_dmg=0, num_hits=1, piercing=False, rank=1),
         Ability("Shell Slam", base_dmg=1, num_hits=1, piercing=True, rank=3)
         ]))
     
@@ -23,7 +30,7 @@ def initialize_data() -> list[Partner]:
     partner_list.append(Partner(name="Yoshi", base_dmg_list=[1,1,1], ability_list=[
         Ability("Ground Pound", base_dmg=0, num_hits=4, piercing=False, rank=1),
         Ability("Gulp", base_dmg=0, num_hits=1, piercing=True, rank=1),
-        Ability("Mini-Egg", base_dmg=3, num_hits=3, piercing=False, rank=2)
+        Ability("Mini-Egg", base_dmg=1, num_hits=3, piercing=False, rank=2)
         ]))
 
     partner_list.append(Partner(name="Vivian", base_dmg_list=[3,4,5], ability_list=[
@@ -47,25 +54,43 @@ def main():
 
     data = [[],[],[]] # [rank][move][modifier]
 
+    lowest_mod = -3
+    highest_mod = 5
+
+    interactive(True)
     for r in [1,2,3]:
-        lowest_mod = -3 - (r-1)
-        highest_mod = 4 + (r-1)
+        lowest_mod -= r-1
+        highest_mod += r-1
+
+        modifier_range = range(lowest_mod,highest_mod+1)
+        move_index = 0
+
         for partner in partner_list:
             move_data = []
-            for m in range(lowest_mod,highest_mod+1):
+
+            for m in modifier_range:
+                sub_move_index = 0
                 results = partner.calculate_all_ability_damage(rank=r,atk_modifier=m)
 
+                # Rearrange results from [modifier][move] format to [move][modifier]
                 if len(move_data) == 0:
                     for i in range(len(results)):
-                        move_data.append([results[i]])
+                        if ((common_only and (results[i].ability in common_moves)) or not common_only):
+                            move_data.append([results[i]])
                 else:
                     for i in range(len(results)):
-                        move_data[i].append(results[i])
+                        if ((common_only and (results[i].ability in common_moves)) or not common_only):
+                            move_data[sub_move_index].append(results[i])
+                            sub_move_index += 1
+                
+                move_index = sub_move_index
             
             data[r-1].extend(move_data)
 
-    # for i in range(8):
-    #     print(f"+{i}: {calculate_damage(1, i, 6)} damage")
+        generate_rank_plot(r, data[r-1], modifier_range)
+    
+    input()
+    interactive(False)
 
 if __name__ == "__main__":
     main()

@@ -37,7 +37,7 @@ class Partner:
                 if ability.name == "Ground Pound":
                     num_hits += rank - 1
                 elif ability.name == "Mini-Egg":
-                    base_attack += 1 if (rank == 3) else 0
+                    num_hits += 1 if (rank == 3) else 0
                     falloff = False
                 elif ability.name == "Gulp":
                     base_attack += 3 + (rank - 1)
@@ -51,7 +51,7 @@ class Partner:
 
 
 
-def calculate_damage(base_attack: int, atk_modifier: int, num_hits: int, falloff: bool) -> int:
+def calculate_damage(base_attack: int, atk_modifier: int, num_hits: int, falloff: bool=True) -> int:
     if (num_hits < 3 or not falloff):
         total_damage = (base_attack + atk_modifier) * num_hits
         total_damage = 0 if (total_damage < 0) else total_damage
@@ -72,3 +72,11 @@ def calculate_damage(base_attack: int, atk_modifier: int, num_hits: int, falloff
                 total_damage += damage_dealt if damage_dealt > 0 else 1
         
         return total_damage
+
+if __name__ == "__main__":
+    for r in [1,2,3]:
+        for m in range(-3, 5+1):
+            print(f"Rank #{r} Bomb: {calculate_damage(2*r,m,1,False)} damage [Modifier: {m}]")
+            # print(f"Rank #{r} Headbonk: {calculate_damage(r,m,2,False)} damage [Modifier: {m}]")
+            # for h in [3,4,5]:
+            #     print(f"Rank #{r} Multibonk ({h} hits): {calculate_damage(r,m,h)} damage [Modifier: {m}]")
