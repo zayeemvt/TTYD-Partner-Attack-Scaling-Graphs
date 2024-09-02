@@ -30,7 +30,7 @@ def initialize_data() -> list[Partner]:
     partner_list.append(Partner(name="Yoshi", base_dmg_list=[1,1,1], ability_list=[
         Ability("Ground Pound", base_dmg=0, num_hits=4, piercing=False, rank=1),
         Ability("Gulp", base_dmg=0, num_hits=1, piercing=True, rank=1),
-        Ability("Mini-Egg", base_dmg=1, num_hits=3, piercing=False, rank=2)
+        Ability("Mini-Egg", base_dmg=0, num_hits=3, piercing=False, rank=2)
         ]))
 
     partner_list.append(Partner(name="Vivian", base_dmg_list=[3,4,5], ability_list=[
@@ -54,16 +54,15 @@ def main():
 
     data = [[],[],[]] # [rank][move][modifier]
 
-    lowest_mod = -3
-    highest_mod = 5
+    modifier_range_list = [
+        range(-3,5+1),
+        range(-4,6+1),
+        range(-6,8+1)
+    ]
 
     interactive(True)
     for r in [1,2,3]:
-        lowest_mod -= r-1
-        highest_mod += r-1
-
-        modifier_range = range(lowest_mod,highest_mod+1)
-        move_index = 0
+        modifier_range = modifier_range_list[r-1]
 
         for partner in partner_list:
             move_data = []
@@ -82,12 +81,16 @@ def main():
                         if ((common_only and (results[i].ability in common_moves)) or not common_only):
                             move_data[sub_move_index].append(results[i])
                             sub_move_index += 1
-                
-                move_index = sub_move_index
             
             data[r-1].extend(move_data)
 
         generate_rank_plot(r, data[r-1], modifier_range)
+    
+    # for partner in partner_list:
+    #     generate_partner_plot(partner.name, data, modifier_range_list)
+
+    for partner in ["Goombella", "Yoshi"]:
+        generate_partner_plot(partner, data, modifier_range_list)
     
     input()
     interactive(False)

@@ -11,6 +11,12 @@ color_dict = {"Goombella" : "tab:pink",
                 "Vivian" : "tab:purple",
                 "Bobbery" : "tab:blue",
                 "Ms. Mowz" : "tab:red"}
+rank_name_dict = { 1 : "Normal",
+                   2 : "Super", 
+                   3 : "Ultra"}
+rank_colors_dict = { 1 : "tab:blue",
+                     2 : "tab:green",
+                     3 : "tab:red"}
 
 @dataclass
 class DamageResult:
@@ -22,13 +28,11 @@ class DamageResult:
         return f'{self.partner}|{self.ability}:{self.total_damage} damage'
 
 
-
-
-def draw_line(data: list[DamageResult]):
-    pass
+current_figure_num = 1
 
 def generate_rank_plot(rank: int, data: list[list[DamageResult]], modifier_range: list[int]):
-    fig = plt.figure(rank, figsize=[6.4*1.5,4.8*1.5])
+    global current_figure_num
+    fig = plt.figure(current_figure_num, figsize=[6.4*1.5,4.8*1.5])
 
     num_points = len(modifier_range)
     x = np.array(modifier_range)
@@ -48,10 +52,10 @@ def generate_rank_plot(rank: int, data: list[list[DamageResult]], modifier_range
 
         move_label = f"{partner} ({move_data[0].ability})"
 
-        # x_noise = np.random.normal(0,0.035, len(x))
-        # y_noise = np.random.normal(0,0.015, len(x))
-        x_noise = np.ones(len(x)) * offset_shift
-        y_noise = np.zeros(len(x))
+        # x_noise = np.random.normal(0,0.035, num_points)
+        # y_noise = np.random.normal(0,0.015, num_points)
+        x_noise = np.ones(num_points) * offset_shift
+        y_noise = np.zeros(num_points)
 
         offset_shift = offset_shift + 0.01 if offset_shift > 0.0 else offset_shift - 0.01
         offset_shift *= -1.0
@@ -64,7 +68,7 @@ def generate_rank_plot(rank: int, data: list[list[DamageResult]], modifier_range
     fig.legend(bbox_to_anchor=(0.4, 0.85), fontsize='small')
     fig.supxlabel("Net Attack Modifier")
     fig.supylabel("Total Damage")
-    fig.suptitle(f'{"Ultra" if (rank == 3) else "Super" if (rank == 2) else "Normal"} Rank')
+    fig.suptitle(f'{rank_name_dict[rank]} Rank')
     
     ax = plt.gca()
     ax.xaxis.set_major_locator(MultipleLocator(1))
@@ -76,3 +80,65 @@ def generate_rank_plot(rank: int, data: list[list[DamageResult]], modifier_range
     ax.axvline(0, color='tab:gray')
 
     fig.show()
+    current_figure_num += 1
+
+
+
+
+def generate_partner_plot(partner: str, data: list[list[list[DamageResult]]], modifier_range_list: list[list[int]]):
+    global current_figure_num
+    fig = plt.figure(current_figure_num, figsize=[6.4*1.5,4.8*1.5])
+
+    # partner = data[0][0][0].partner
+    move_index = 0
+    offset_shift = -0.005
+
+    rank = 1
+    marker_color = "tab:yellow"
+
+    for rank_data in data:
+        marker_color = rank_colors_dict[rank]
+        move_index = 0
+        
+        num_points = len(modifier_range_list[rank-1])
+        x = np.array(modifier_range_list[rank-1])
+
+        rank_data = [move_data for move_data in rank_data if (move_data[0].partner == partner)]
+
+        for move_data in rank_data:
+            y = np.array([ability.total_damage for ability in move_data])
+
+            move_label = f"{move_data[0].ability} ({rank_name_dict[rank]} Rank)"
+
+            # x_noise = np.random.normal(0,0.035, num_points)
+            # y_noise = np.random.normal(0,0.015, num_points)
+            x_noise = np.ones(num_points) * offset_shift
+            y_noise = np.zeros(num_points)
+
+            offset_shift = offset_shift + 0.01 if offset_shift > 0.0 else offset_shift - 0.01
+            offset_shift *= -1.0
+
+            plt.plot(x + x_noise, y + y_noise, label=move_label, marker=marker_list[move_index], color=marker_color,
+                    alpha=0.9, linestyle='--', markersize=6.0)
+            move_index += 1
+            move_index %= len(marker_list)
+
+        
+        rank += 1
+    
+    fig.legend(bbox_to_anchor=(0.4, 0.85), fontsize='small')
+    fig.supxlabel("Net Attack Modifier")
+    fig.supylabel("Total Damage")
+    fig.suptitle(f'{partner}')
+    
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(MultipleLocator(1))
+    ax.yaxis.set_major_locator(MultipleLocator(4))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.grid(True, which='major')
+    ax.grid(True, which='minor', linewidth=0.5, color='#DDDDDD')
+    ax.axhline(0, color='tab:gray')
+    ax.axvline(0, color='tab:gray')
+
+    fig.show()
+    current_figure_num += 1

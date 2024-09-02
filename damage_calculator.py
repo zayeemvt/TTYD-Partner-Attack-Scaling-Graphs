@@ -25,7 +25,7 @@ class Partner:
             if rank < ability.rank:
                 continue
             
-            base_attack = self.base_dmg_list[rank-1]
+            base_attack = self.base_dmg_list[rank-1]+ability.base_dmg
             modifier = atk_modifier
             num_hits = ability.num_hits
             falloff = True # does damage decrease with each attack?
