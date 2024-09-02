@@ -100,12 +100,12 @@ def main():
     
     ### Uncomment this if you want to see graphs for ALL partners
     ### Realistically, only Goombella and Yoshi's graphs are interesting
-    for partner in partner_list:
-        generate_partner_plot(partner.name, all_data, modifier_range_list)
+    # for partner in partner_list:
+    #     generate_partner_plot(partner.name, all_data, modifier_range_list)
 
     ### Comment out this loop if you want to see graphs for ALL partners
-    # for partner in ["Goombella", "Yoshi"]:
-    #     generate_partner_plot(partner, all_data, modifier_range_list)
+    for partner in ["Goombella", "Yoshi"]:
+        generate_partner_plot(partner, all_data, modifier_range_list)
     
     input() # prevents graphs from instantly disappearing
 
