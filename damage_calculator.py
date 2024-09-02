@@ -1,0 +1,74 @@
+from dataclasses import dataclass
+
+from discrete_plotter import DamageResult
+
+@dataclass
+class Ability:
+    name: str
+    base_dmg: int
+    num_hits: int
+    piercing: bool
+    rank: int
+
+class Partner:
+    def __init__(self, name: str, base_dmg_list: list[int], ability_list: list[Ability]) -> None:
+        self.name = name
+        self.base_dmg_list = base_dmg_list
+        self.ability_list = ability_list
+    
+    def calculate_all_ability_damage(self, rank: int, atk_modifier: int) -> list[DamageResult]:
+        results = []
+
+        for ability in self.ability_list:
+            damage = -1
+
+            if rank < ability.rank:
+                continue
+            
+            base_attack = self.base_dmg_list[rank-1]
+            modifier = atk_modifier
+            num_hits = ability.num_hits
+            falloff = True # does damage decrease with each attack?
+
+            if ability.piercing and atk_modifier < 0:
+                modifier = 0
+            
+            if self.name == "Yoshi": # This guy has so many exceptions...
+                if ability.name == "Ground Pound":
+                    num_hits += rank - 1
+                elif ability.name == "Mini-Egg":
+                    base_attack += 1 if (rank == 3) else 0
+                    falloff = False
+                elif ability.name == "Gulp":
+                    base_attack += 3 + (rank - 1)
+
+            
+            damage = calculate_damage(base_attack, modifier, num_hits, falloff)
+            
+            results.append(DamageResult(partner=self.name, ability=ability.name, total_damage=damage))
+        
+        return results
+
+
+
+def calculate_damage(base_attack: int, atk_modifier: int, num_hits: int, falloff: bool) -> int:
+    if (num_hits < 3 or not falloff):
+        total_damage = (base_attack + atk_modifier) * num_hits
+        total_damage = 0 if (total_damage < 0) else total_damage
+
+        return total_damage
+    
+    else:
+        total_damage = 0
+
+        for i in range(num_hits):
+            initial_hit = base_attack + atk_modifier
+
+            if (initial_hit <= 0):
+                break
+            else:
+                damage_dealt = initial_hit - i
+
+                total_damage += damage_dealt if damage_dealt > 0 else 1
+        
+        return total_damage
